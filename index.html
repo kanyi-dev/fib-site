@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ICT Fib — NY AM Session Checklist (8:30–11:00 NY)</title>
+<style>
+  :root{
+    --bg:#070b14;
+    --panel:#0d1422;
+    --panel-2:#111a2c;
+    --border:#1e2a44;
+    --text:#d7e3f7;
+    --muted:#6b7a94;
+    --cyan:#00d9ff;
+    --green:#00ff9c;
+    --amber:#ffbe3b;
+    --red:#ff4d6a;
+    --purple:#a986ff;
+    --grid: rgba(0,217,255,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;line-height:1.5;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .mono{font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace}
+  .wrap{max-width:880px;margin:0 auto;padding:16px 14px 80px}
+
+  /* Header */
+  header{
+    position:sticky;top:0;z-index:10;
+    background:linear-gradient(180deg,rgba(7,11,20,.97),rgba(7,11,20,.88));
+    backdrop-filter: blur(8px);
+    border-bottom:1px solid var(--border);
+    margin:-16px -14px 18px; padding:12px 14px;
+  }
+  .hdr-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:10px}
+  .brand h1{font-size:15px;margin:0;letter-spacing:.3px;color:var(--text)}
+  .brand h1 span{color:var(--cyan)}
+  .brand .sub{font-size:11px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+
+  .clock-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .clock{
+    font-family:"SF Mono","JetBrains Mono",Menlo,monospace;
+    padding:5px 9px;border:1px solid var(--border);border-radius:6px;
+    background:var(--panel);font-size:12px;color:var(--text)
+  }
+  .clock b{color:var(--muted);font-weight:500;margin-right:6px;font-size:10px;letter-spacing:.6px}
+
+  .phase{
+    padding:6px 10px;border-radius:6px;font-size:11px;letter-spacing:.8px;
+    font-weight:600;text-transform:uppercase;border:1px solid transparent;
+    font-family:"SF Mono","JetBrains Mono",Menlo,monospace;
+  }
+  .ph-pre    {background:rgba(107,122,148,.1); color:var(--muted); border-color:#2a3650}
+  .ph-news   {background:rgba(255,77,106,.12);color:var(--red);   border-color:rgba(255,77,106,.35); animation: pulse 1.6s infinite}
+  .ph-am     {background:rgba(0,217,255,.12); color:var(--cyan);  border-color:rgba(0,217,255,.35)}
+  .ph-silver {background:rgba(0,255,156,.14); color:var(--green); border-color:rgba(0,255,156,.4);  animation: pulse 2s infinite}
+  .ph-closed {background:rgba(107,122,148,.08);color:var(--muted); border-color:#1e2a44}
+  @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.55} }
+
+  /* Progress */
+  .progress-wrap{margin-top:12px}
+  .progress-bar{height:4px;background:var(--panel);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));width:0%;transition:width .3s}
+  .progress-meta{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted)}
+
+  /* Sections */
+  section.card{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; margin-bottom:14px; overflow:hidden;
+  }
+  .card-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:12px 14px; background:var(--panel-2); border-bottom:1px solid var(--border);
+    cursor:pointer; user-select:none;
+  }
+  .card-head h2{margin:0;font-size:13px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--text);display:flex;align-items:center;gap:8px}
+  .card-head h2 .num{
+    font-family:"SF Mono",Menlo,monospace; font-size:11px;
+    color:var(--cyan); background:rgba(0,217,255,.08);
+    border:1px solid rgba(0,217,255,.25);
+    padding:2px 6px;border-radius:4px;min-width:26px;text-align:center
+  }
+  .card-head .meta{font-size:11px;color:var(--muted);font-family:"SF Mono",Menlo,monospace}
+  .card-head .chev{color:var(--muted);transition:transform .2s}
+  .card.collapsed .card-head .chev{transform:rotate(-90deg)}
+  .card.collapsed .card-body{display:none}
+  .card-body{padding:14px}
+
+  .hint{font-size:12px;color:var(--muted);margin:0 0 10px;line-height:1.55}
+  .hint code{background:var(--panel-2);padding:1px 5px;border-radius:3px;color:var(--amber);font-size:11px}
+
+  /* Checkbox items */
+  .item{
+    display:flex;align-items:flex-start;gap:10px;padding:9px 10px;
+    border:1px solid transparent;border-radius:6px;margin-bottom:3px;cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .item:hover{background:rgba(0,217,255,.03);border-color:rgba(0,217,255,.15)}
+  .item input[type=checkbox]{
+    appearance:none;-webkit-appearance:none;margin:3px 0 0;
+    width:16px;height:16px;min-width:16px;
+    border:1.5px solid var(--border);border-radius:3px;background:var(--panel-2);
+    cursor:pointer;position:relative;transition:all .15s;
+  }
+  .item input[type=checkbox]:checked{background:var(--cyan);border-color:var(--cyan)}
+  .item input[type=checkbox]:checked::after{
+    content:"";position:absolute;left:4px;top:0px;width:5px;height:10px;
+    border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg);
+  }
+  .item.checked{background:rgba(0,255,156,.04);border-color:rgba(0,255,156,.18)}
+  .item.checked .item-label{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(107,122,148,.4)}
+  .item-label{flex:1;font-size:13px;line-height:1.45}
+  .item-label small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.4}
+  .item-label small.kbd{font-family:"SF Mono",Menlo,monospace;color:var(--amber)}
+
+  /* Chip / tag */
+  .chip{
+    display:inline-block; font-size:10px; letter-spacing:.6px; text-transform:uppercase;
+    padding:1px 6px; border-radius:3px; margin-left:6px; vertical-align:middle;
+    font-family:"SF Mono",Menlo,monospace; font-weight:600;
+  }
+  .chip-critical{background:rgba(255,77,106,.14);color:var(--red);border:1px solid rgba(255,77,106,.3)}
+  .chip-priority{background:rgba(255,190,59,.12);color:var(--amber);border:1px solid rgba(255,190,59,.3)}
+  .chip-confluence{background:rgba(169,134,255,.12);color:var(--purple);border:1px solid rgba(169,134,255,.3)}
+  .chip-optional{background:rgba(107,122,148,.1);color:var(--muted);border:1px solid #2a3650}
+
+  /* Fib diagram block */
+  .fib-ref{
+    background:var(--panel-2);border:1px solid var(--border);border-radius:6px;
+    padding:10px 12px;font-family:"SF Mono",Menlo,monospace;font-size:12px;line-height:1.8;margin-bottom:10px;
+  }
+  .fib-ref .lvl{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dashed rgba(107,122,148,.15)}
+  .fib-ref .lvl:last-child{border-bottom:none}
+  .fib-ref .lvl b{color:var(--cyan)}
+  .fib-ref .lvl.ote{background:rgba(0,255,156,.05);margin:0 -6px;padding:2px 6px;border-radius:3px}
+  .fib-ref .lvl.ote b{color:var(--green)}
+  .fib-ref .lvl.ext b{color:var(--amber)}
+
+  /* Watchlist grid */
+  .wl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+  @media (max-width:520px){.wl{grid-template-columns:1fr}}
+  .wl-card{
+    background:var(--panel-2);border:1px solid var(--border);border-radius:6px;
+    padding:10px 12px;
+  }
+  .wl-card h4{margin:0 0 4px;font-size:12px;color:var(--cyan);font-family:"SF Mono",Menlo,monospace;letter-spacing:.5px}
+  .wl-card p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.5}
+
+  /* Notes / textarea */
+  textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    border-radius:6px;padding:10px;font-family:"SF Mono",Menlo,monospace;font-size:12px;
+    resize:vertical;min-height:70px;
+  }
+  textarea:focus{outline:none;border-color:var(--cyan)}
+
+  /* Footer actions */
+  .actions{
+    position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+    display:flex;gap:8px;background:var(--panel);border:1px solid var(--border);
+    padding:8px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:20;
+  }
+  .btn{
+    background:var(--panel-2);color:var(--text);border:1px solid var(--border);
+    font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.5px;
+    padding:7px 12px;border-radius:6px;cursor:pointer;text-transform:uppercase;
+    transition:all .15s;
+  }
+  .btn:hover{border-color:var(--cyan);color:var(--cyan)}
+  .btn-danger:hover{border-color:var(--red);color:var(--red)}
+
+  /* Banner */
+  .banner{
+    background:rgba(255,190,59,.06);border:1px solid rgba(255,190,59,.25);
+    border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--amber);
+    line-height:1.55;
+  }
+  .banner b{color:var(--amber)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="hdr-row">
+      <div class="brand">
+        <h1>ICT FIB · <span>NY AM SESSION</span></h1>
+      </div>
+      <div class="clock-row">
+        <div class="clock" id="clk-eat"><b>EAT</b><span id="eat">--:--:--</span></div>
+        <div class="clock" id="clk-ny"><b>NY</b><span id="ny">--:--:--</span></div>
+        <div class="phase ph-pre" id="phase">PRE-OPEN</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+      <div class="progress-meta">
+        <span id="pm-text">0 / 0 checks complete</span>
+        <span id="pm-date">--</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="banner">
+    <b>WINDOW:</b> 08:30–11:00 NY &nbsp;=&nbsp; <span class="mono">15:30–18:00 EAT</span> (EDT). Silver Bullet: 10:00–11:00 NY / 17:00–18:00 EAT.
+    Treat 08:30 NY (15:30 EAT) as a news-release risk window — freeze entries 5m before / 2m after scheduled USD releases.
+  </div>
+
+  <!-- ============ SECTION 1: PRE-SESSION CONTEXT ============ -->
+  <section class="card" data-id="s1">
+    <div class="card-head">
+      <h2><span class="num">01</span>Pre-Session Context <span class="chip chip-critical">DO FIRST</span></h2>
+      <div class="meta">By 15:15 EAT</div>
+    </div>
+    <div class="card-body">
+      <p class="hint">Top-down read done before the window opens. No fib is drawn yet. You are establishing the narrative: <b>where does price want to go</b>, and <b>what liquidity is in the way</b>.</p>
+
+      <div class="item"><input type="checkbox" id="c1-1"><label for="c1-1" class="item-label">HTF bias confirmed on Daily &amp; H4 — bullish / bearish / neutral<small>Neutral = stand down or trade counter-trend only with extreme confluence. Record bias in notes below.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c1-2"><label for="c1-2" class="item-label">Draw on Liquidity (DOL) identified <span class="chip chip-critical">non-negotiable</span><small>Where is price likely reaching for? PDH/PDL, weekly high/low, old equal highs/lows, HTF FVG, HTF OB. Without DOL, you are guessing.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c1-3"><label for="c1-3" class="item-label">Asian range marked (03:00–10:00 EAT high/low)<small>NY AM frequently raids Asian range extremes before delivering the true move. High/low of Asian = first-tier liquidity target.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c1-4"><label for="c1-4" class="item-label">London session read completed — continuation or reversal into NY?<small>If London ran one extreme and stalled: NY often delivers opposite leg (judas swing / turtle soup). If London trended cleanly: NY typically continues after a retrace.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c1-5"><label for="c1-5" class="item-label">HTF PD arrays plotted — FVGs, order blocks, breakers on H4 / H1<small>These are the destinations and the rejections. A fib drawn toward an HTF FVG is qualitatively different from one drawn into empty space.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c1-6"><label for="c1-6" class="item-label">USD news calendar checked — any red-folder events 08:30 / 10:00 NY? <span class="chip chip-priority">risk gate</span><small class="kbd">NFP · CPI · PPI · Retail Sales · FOMC minutes · Jobless Claims</small><small>If yes: no fresh entries 5m pre / 2m post release. Existing positions — consider reducing or widening stops.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c1-7"><label for="c1-7" class="item-label">DXY direction aligns with intended pair bias<small>DXY up → USD pairs (EURUSD, GBPUSD) should bias short; XAUUSD should bias short; USDJPY should bias long. Divergence = SMT opportunity or invalidation signal.</small></label></div>
+
+      <textarea id="n1" placeholder="Session narrative in one line — e.g. 'Daily bearish; DOL is PWL at 1.0520; Asian high swept at London; expect NY retrace into premium H1 FVG then continuation short.'"></textarea>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 2: VOLATILITY WATCHLIST ============ -->
+  <section class="card" data-id="s2">
+    <div class="card-head">
+      <h2><span class="num">02</span>Volatility Watchlist</h2>
+      <div class="meta">15:30–18:00 EAT</div>
+    </div>
+    <div class="card-body">
+      <p class="hint">These move the most between 08:30–11:00 NY. Rank your top 2 based on HTF setup quality — trading more than 2 simultaneously compromises execution. Tick only the ones you are actively trading today.</p>
+
+      <div class="wl">
+        <div class="wl-card">
+          <h4>XAU/USD</h4>
+          <p>Highest ATR in the window. Reacts strongly to DXY, yields, risk-on/off. Prone to stop runs on M1/M5. Best when H4 has a clear DOL.</p>
+        </div>
+        <div class="wl-card">
+          <h4>GBP/USD</h4>
+          <p>Biggest range of the majors at NY open. Cleanest OTE setups when aligned with DXY. Watch 08:30 NY for cable spikes.</p>
+        </div>
+        <div class="wl-card">
+          <h4>EUR/USD</h4>
+          <p>Most liquid. Smoother displacement legs; fibs anchor cleanly. Slightly smaller range than GBP — sizing up compensates.</p>
+        </div>
+        <div class="wl-card">
+          <h4>USD/JPY</h4>
+          <p>Macro-sensitive. Yields-driven. When US10Y moves hard at 08:30 NY, USDJPY delivers the cleanest OTE of the window.</p>
+        </div>
+        <div class="wl-card">
+          <h4>GBP/JPY</h4>
+          <p>Volatility stack (GBP + JPY). Use only when GU and UJ bias agree. Widen SL — this pair runs fibs deeper than majors.</p>
+        </div>
+        <div class="wl-card">
+          <h4>Indices (optional)</h4>
+          <p>NAS100 / US30 / US500 — 09:30 NY cash open creates liquidity sweeps that often mirror USD pairs. Confluence tool, not primary.</p>
+        </div>
+      </div>
+
+      <div class="item"><input type="checkbox" id="c2-1"><label for="c2-1" class="item-label">Primary asset #1 selected with HTF reasoning<small>Best-of-best setup. One pair. Full size (within risk rules).</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c2-2"><label for="c2-2" class="item-label">Secondary asset #2 identified as backup<small>Only if #1 invalidates or fails to reach setup zone. Do not trade both concurrently.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c2-3"><label for="c2-3" class="item-label">SMT check — is the correlated pair confirming or diverging? <span class="chip chip-confluence">confluence</span><small>EURUSD vs GBPUSD · USDJPY vs USDCHF · XAUUSD vs DXY inverse. Divergence at a key level = high-quality entry signal.</small></label></div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 3: SETUP QUALIFICATION ============ -->
+  <section class="card" data-id="s3">
+    <div class="card-head">
+      <h2><span class="num">03</span>Setup Qualification — Structural Prereqs</h2>
+      <div class="meta">Before drawing the fib</div>
+    </div>
+    <div class="card-body">
+      <p class="hint">No fib tool gets placed on the chart until these four conditions exist. If any are missing, you are back-fitting a setup.</p>
+
+      <div class="item"><input type="checkbox" id="c3-1"><label for="c3-1" class="item-label">Displacement leg present on M5 or M15 <span class="chip chip-critical">required</span><small>Strong, directional, impulsive move — typically ≥ 1 ATR on the timeframe. Wicky, overlapping candles = no displacement = no setup.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c3-2"><label for="c3-2" class="item-label">Liquidity sweep preceded the displacement <span class="chip chip-critical">required</span><small>Something got raided — PDH/PDL, Asian high/low, London high/low, equal highs/lows, recent swing. Displacement without a sweep is often a false move.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c3-3"><label for="c3-3" class="item-label">MSS / CHoCH printed on M5 or M1 after the sweep <span class="chip chip-critical">required</span><small>The displacement must break a near-term structural point in the new direction. This is your "intent confirmed" signal.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c3-4"><label for="c3-4" class="item-label">FVG left behind inside the displacement leg <span class="chip chip-priority">strongly preferred</span><small>The FVG is your "institutional fingerprint" — imbalance created by aggressive order flow. A displacement without an FVG is weaker.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c3-5"><label for="c3-5" class="item-label">Displacement aligns with HTF bias from Section 01<small>Counter-HTF entries can work on pure Silver Bullet reversal days, but the default is: trade only in HTF direction.</small></label></div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 4: FIB ANCHORING ============ -->
+  <section class="card" data-id="s4">
+    <div class="card-head">
+      <h2><span class="num">04</span>Fib Anchoring — ICT Rules</h2>
+      <div class="meta">Body-to-body only</div>
+    </div>
+    <div class="card-body">
+      <p class="hint">This is the core ICT deviation from retail fib usage. Anchor points and levels are both custom. Get this wrong and every entry downstream is miscalibrated.</p>
+
+      <div class="fib-ref">
+        <div class="lvl"><span>0.0 &nbsp;·&nbsp; Origin / 100% retrace target</span><b>SL buffer</b></div>
+        <div class="lvl"><span>0.5 &nbsp;·&nbsp; Equilibrium (premium/discount pivot)</span><b>avoid entry</b></div>
+        <div class="lvl"><span>0.618 &nbsp;·&nbsp; OTE upper edge</span><b>entry zone</b></div>
+        <div class="lvl ote"><span>0.705 &nbsp;·&nbsp; OTE sweet spot</span><b>PRIMARY ENTRY</b></div>
+        <div class="lvl"><span>0.79 &nbsp;·&nbsp; OTE lower edge</span><b>last-chance entry</b></div>
+        <div class="lvl"><span>1.0 &nbsp;·&nbsp; Invalidation</span><b>stop zone</b></div>
+        <div class="lvl ext"><span>&minus;0.27 &nbsp;·&nbsp; TP1 (50%)</span><b>partial</b></div>
+        <div class="lvl ext"><span>&minus;0.62 &nbsp;·&nbsp; TP2 (30%)</span><b>partial</b></div>
+        <div class="lvl ext"><span>&minus;1.0 &nbsp;·&nbsp; TP3 / symmetrical swing (20%)</span><b>runner</b></div>
+      </div>
+
+      <div class="item"><input type="checkbox" id="c4-1"><label for="c4-1" class="item-label">Anchored body-to-body, NOT wick-to-wick <span class="chip chip-critical">ICT rule</span><small>Bullish displacement: anchor from the <b>body low</b> of the lowest candle to the <b>body high</b> of the highest. Reverse for bearish. Wicks are liquidity noise, not institutional levels.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c4-2"><label for="c4-2" class="item-label">Fib drawn on the timeframe where the displacement prints cleanest<small>Usually M5 or M15 for this window. If M1 displaces, use M1. Rule of thumb: use the timeframe where the displacement is one clean impulsive leg, not a stairstep.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c4-3"><label for="c4-3" class="item-label">Anchor re-adjusted if price extends beyond the current high/low <span class="chip chip-priority">dynamic</span><small>Price trades through your original anchor? Re-anchor to the new body-high/body-low. The fib lengthens to match the actual extent of the swing. Never leave a stale fib.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c4-4"><label for="c4-4" class="item-label">Extensions (&minus;0.27, &minus;0.62, &minus;1.0) are visible on the chart<small>If you can't see your targets, you can't manage partials properly. Add them to your TradingView fib preset.</small></label></div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 5: ENTRY CONFLUENCE ============ -->
+  <section class="card" data-id="s5">
+    <div class="card-head">
+      <h2><span class="num">05</span>Entry Confluence — Stack the Odds</h2>
+      <div class="meta">Inside 0.618–0.79</div>
+    </div>
+    <div class="card-body">
+      <p class="hint">Price is in the OTE zone. You do not enter because "price is at 0.705". You enter because the 0.705 overlaps with other ICT confluences. The more green boxes below, the higher the A+ grade.</p>
+
+      <div class="item"><input type="checkbox" id="c5-1"><label for="c5-1" class="item-label">Price is currently between 0.618 and 0.79 <span class="chip chip-critical">gate</span><small>If price reversed before reaching 0.618: no trade. If price blew through 0.79 toward 1.0: reassess — likely invalid or re-anchor.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c5-2"><label for="c5-2" class="item-label">FVG from Section 03 sits inside the 0.618–0.79 band <span class="chip chip-confluence">A+ confluence</span><small>This is the highest-probability signature for this window. FVG + OTE overlap is the single most-referenced ICT entry pattern.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c5-3"><label for="c5-3" class="item-label">Order block or breaker inside the OTE zone <span class="chip chip-confluence">confluence</span><small>Last opposing candle before the displacement. Bonus if it overlaps an HTF OB from Section 01.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c5-4"><label for="c5-4" class="item-label">Killzone timing active <span class="chip chip-priority">timing edge</span><small class="kbd">Silver Bullet AM · 17:00–18:00 EAT (10:00–11:00 NY)</small><small>Entries triggered during Silver Bullet historically have the highest follow-through. Entries at 15:45–16:30 EAT are workable but lower-grade.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c5-5"><label for="c5-5" class="item-label">Execution-TF confirmation printed (M1 MSS or M1 FVG respected)<small>Zoom to M1 inside the OTE. Wait for the M1 to structurally confirm — don't enter mid-candle on a guess. This is the "trigger", not the "setup".</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c5-6"><label for="c5-6" class="item-label">DOL from Section 01 is still reachable with favorable R<small>TP1 (&minus;0.27) should at minimum clear recent highs/lows. If the DOL is unreachable without giving up &lt; 2R, the setup is too late.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c5-7"><label for="c5-7" class="item-label">No scheduled USD release in next 15 minutes <span class="chip chip-critical">risk gate</span><small>Re-verify the calendar at the entry candle. A 10:00 NY (17:00 EAT) release mid-Silver-Bullet can nuke a perfect setup.</small></label></div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 6: EXECUTION & MANAGEMENT ============ -->
+  <section class="card" data-id="s6">
+    <div class="card-head">
+      <h2><span class="num">06</span>Execution &amp; Management</h2>
+      <div class="meta">50 / 30 / 20</div>
+    </div>
+    <div class="card-body">
+      <p class="hint">Three-order structure on MT5 (per your Pepperstone workflow). Size each order so partials scale cleanly without re-work mid-trade.</p>
+
+      <div class="item"><input type="checkbox" id="c6-1"><label for="c6-1" class="item-label">Risk ≤ 1% of account on total position<small>Split across the three orders. If the sum risk exceeds 1%, reduce lot size, not SL distance.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c6-2"><label for="c6-2" class="item-label">SL placed beyond 1.0 + buffer (10–20 pips FX / $3–5 XAU)<small>Below the swept liquidity wick for buys, above for sells. The sweep is the protection — a new wick through = setup void.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c6-3"><label for="c6-3" class="item-label">Three orders placed on MT5 with TPs at &minus;0.27, &minus;0.62, &minus;1.0<small>50% to TP1 · 30% to TP2 · 20% runner to TP3 (or HTF DOL). Keep SLs identical across all three.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c6-4"><label for="c6-4" class="item-label">Entry screenshot captured with fib + MSS + FVG labeled<small>For journal + backtest library. Annotate before you forget the reasoning.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c6-5"><label for="c6-5" class="item-label">Plan for post-TP1 action decided in advance<small>Move all SLs to breakeven after TP1? Trail to last M5 swing? Leave static? Decide before the trade, not during.</small></label></div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 7: INVALIDATION ============ -->
+  <section class="card" data-id="s7">
+    <div class="card-head">
+      <h2><span class="num">07</span>Invalidation &amp; Kill Criteria</h2>
+      <div class="meta">Know when to walk</div>
+    </div>
+    <div class="card-body">
+      <p class="hint">These are not "maybe reconsider" — they are hard kill switches. Any one of them means the setup is dead; do not average, do not widen, do not rationalize.</p>
+
+      <div class="item"><input type="checkbox" id="c7-1"><label for="c7-1" class="item-label">Close beyond 1.0 on execution TF = invalid<small>Body-close past the 100% retrace means the displacement is being reclaimed. Setup is cancelled.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c7-2"><label for="c7-2" class="item-label">Price stalls at 0.5 and reverses without reaching 0.618 = skip<small>No OTE touch = no OTE trade. The move delivered too shallow — wait for a fresh setup or a deeper retrace.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c7-3"><label for="c7-3" class="item-label">News-driven spike through OTE without M1 structure = do not enter<small>Price can tag 0.705 on a pure news wick and keep going. Need M1 MSS <b>after</b> the spike, not during.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c7-4"><label for="c7-4" class="item-label">Two full losses taken in the window = session over<small>Hard stop. Close the platform. Review tomorrow. Over-trading the NY AM is the #1 account-killer.</small></label></div>
+
+      <div class="item"><input type="checkbox" id="c7-5"><label for="c7-5" class="item-label">After 17:45 EAT (10:45 NY), no new entries<small>Silver Bullet is closing; follow-through risk rises sharply after 18:00 EAT. Manage existing only.</small></label></div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 8: POST-SESSION ============ -->
+  <section class="card" data-id="s8">
+    <div class="card-head">
+      <h2><span class="num">08</span>Post-Session Review</h2>
+      <div class="meta">After 18:00 EAT</div>
+    </div>
+    <div class="card-body">
+      <p class="hint">Non-negotiable. Journal immediately while context is fresh — not at the end of the week.</p>
+
+      <div class="item"><input type="checkbox" id="c8-1"><label for="c8-1" class="item-label">Setup graded A / B / C (quality of confluence stack)</label></div>
+      <div class="item"><input type="checkbox" id="c8-2"><label for="c8-2" class="item-label">Execution graded A / B / C (entry, SL, partials, emotional state)</label></div>
+      <div class="item"><input type="checkbox" id="c8-3"><label for="c8-3" class="item-label">Outcome logged in journal (R gained/lost, screenshots saved)</label></div>
+      <div class="item"><input type="checkbox" id="c8-4"><label for="c8-4" class="item-label">One concrete lesson extracted — pattern, mistake, or confirmation</label></div>
+
+      <textarea id="n8" placeholder="Today's single biggest lesson — one sentence, specific and actionable. e.g. 'EURUSD — entered at 0.618 instead of waiting for 0.705 FVG tap; paid 8 pips extra on SL. Fix: only trigger on M1 FVG respect inside 0.705–0.79.'"></textarea>
+    </div>
+  </section>
+
+</div>
+
+<div class="actions">
+  <button class="btn" id="btn-expand">Expand All</button>
+  <button class="btn" id="btn-collapse">Collapse All</button>
+  <button class="btn btn-danger" id="btn-reset">Reset Day</button>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'ict_fib_ny_am_v1';
+  const DATE_KEY    = 'ict_fib_ny_am_date';
+
+  // ---------- Day rollover: auto-clear at midnight EAT ----------
+  const todayEAT = (() => {
+    const now = new Date();
+    // EAT = UTC+3, no DST
+    const eat = new Date(now.getTime() + (3*60 - now.getTimezoneOffset()) * 60000);
+    return eat.toISOString().slice(0,10);
+  })();
+  if(localStorage.getItem(DATE_KEY) !== todayEAT){
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.setItem(DATE_KEY, todayEAT);
+  }
+  document.getElementById('pm-date').textContent = todayEAT;
+
+  // ---------- Load saved state ----------
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  const checks = saved.checks || {};
+  const notes  = saved.notes  || {};
+  const collapsed = saved.collapsed || {};
+
+  function persist(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({checks, notes, collapsed}));
+  }
+
+  // ---------- Wire checkboxes ----------
+  document.querySelectorAll('.item input[type=checkbox]').forEach(cb => {
+    if(checks[cb.id]){ cb.checked = true; cb.closest('.item').classList.add('checked'); }
+    cb.addEventListener('change', () => {
+      checks[cb.id] = cb.checked;
+      cb.closest('.item').classList.toggle('checked', cb.checked);
+      persist();
+      updateProgress();
+    });
+  });
+
+  // Click anywhere on item = toggle checkbox
+  document.querySelectorAll('.item').forEach(it => {
+    it.addEventListener('click', e => {
+      if(e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
+      const cb = it.querySelector('input[type=checkbox]');
+      if(cb){ cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+    });
+  });
+
+  // ---------- Textareas ----------
+  document.querySelectorAll('textarea').forEach(t => {
+    if(notes[t.id]) t.value = notes[t.id];
+    t.addEventListener('input', () => { notes[t.id] = t.value; persist(); });
+  });
+
+  // ---------- Collapse / expand ----------
+  document.querySelectorAll('.card').forEach(card => {
+    const id = card.getAttribute('data-id');
+    if(collapsed[id]) card.classList.add('collapsed');
+    const head = card.querySelector('.card-head');
+    // add chevron
+    const chev = document.createElement('span');
+    chev.className = 'chev mono';
+    chev.textContent = '▾';
+    head.appendChild(chev);
+    head.addEventListener('click', () => {
+      card.classList.toggle('collapsed');
+      collapsed[id] = card.classList.contains('collapsed');
+      persist();
+    });
+  });
+
+  document.getElementById('btn-expand').addEventListener('click', () => {
+    document.querySelectorAll('.card').forEach(c => { c.classList.remove('collapsed'); collapsed[c.dataset.id] = false; });
+    persist();
+  });
+  document.getElementById('btn-collapse').addEventListener('click', () => {
+    document.querySelectorAll('.card').forEach(c => { c.classList.add('collapsed'); collapsed[c.dataset.id] = true; });
+    persist();
+  });
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    if(!confirm('Reset all checks and notes for today?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  });
+
+  // ---------- Progress ----------
+  function updateProgress(){
+    const all = document.querySelectorAll('.item input[type=checkbox]');
+    const done = document.querySelectorAll('.item input[type=checkbox]:checked');
+    const pct = all.length ? (done.length / all.length * 100) : 0;
+    document.getElementById('pf').style.width = pct + '%';
+    document.getElementById('pm-text').textContent = done.length + ' / ' + all.length + ' checks complete';
+  }
+  updateProgress();
+
+  // ---------- Clocks + phase ----------
+  function pad(n){ return n.toString().padStart(2,'0'); }
+  function tick(){
+    const now = new Date();
+
+    // EAT (UTC+3)
+    const eat = new Date(now.getTime() + (3*60 + now.getTimezoneOffset()) * 60000);
+    document.getElementById('eat').textContent =
+      pad(eat.getUTCHours()) + ':' + pad(eat.getUTCMinutes()) + ':' + pad(eat.getUTCSeconds());
+
+    // NY time — America/New_York, DST-aware
+    const nyStr = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      hour:   '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).format(now);
+    document.getElementById('ny').textContent = nyStr;
+
+    // Phase detection — based on NY time
+    const [nyH, nyM] = nyStr.split(':').map(Number);
+    const nyMin = nyH * 60 + nyM;
+
+    const el = document.getElementById('phase');
+    el.className = 'phase';
+    // windows in NY minutes
+    //  < 8:25   → PRE-OPEN
+    //  8:25–8:35 → NEWS
+    //  8:35–10:00 → AM ACTIVE
+    // 10:00–11:00 → SILVER BULLET
+    // >11:00 or <7:00 → CLOSED
+    if(nyMin >= 7*60 && nyMin < 8*60+25){ el.classList.add('ph-pre');    el.textContent = 'PRE-OPEN'; }
+    else if(nyMin >= 8*60+25 && nyMin < 8*60+35){ el.classList.add('ph-news');   el.textContent = '08:30 NEWS'; }
+    else if(nyMin >= 8*60+35 && nyMin < 10*60){   el.classList.add('ph-am');     el.textContent = 'NY AM ACTIVE'; }
+    else if(nyMin >= 10*60 && nyMin < 11*60){     el.classList.add('ph-silver'); el.textContent = 'SILVER BULLET'; }
+    else if(nyMin >= 11*60 && nyMin < 18*60){     el.classList.add('ph-closed'); el.textContent = 'WINDOW CLOSED'; }
+    else {                                         el.classList.add('ph-closed'); el.textContent = 'OUT OF SESSION'; }
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // ---------- Daily rollover watcher ----------
+  setInterval(() => {
+    const now = new Date();
+    const eat = new Date(now.getTime() + (3*60 - now.getTimezoneOffset()) * 60000);
+    const d = eat.toISOString().slice(0,10);
+    if(d !== localStorage.getItem(DATE_KEY)){
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.setItem(DATE_KEY, d);
+      location.reload();
+    }
+  }, 60000);
+
+})();
+</script>
+</body>
+</html>
